@@ -10,7 +10,7 @@ app.use(cors());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
-app.get('/players/:playerId', api.getPlayerById);
+app.get('/players/:steamId', api.getPlayerById);
 
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, '../../public/index.html'));

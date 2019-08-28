@@ -25,21 +25,45 @@ const get = (url, query) => {
 };
 
 /**
+ * Returns Steam player's list of owned games.
+ * @param {string} url
+ * @param {Object} query Query params
+ */
+const getPlayerOwnedGames = (steamId) =>
+  get(`${ROOT_URL}/IPlayerService/GetOwnedGames/v0001`, {
+    steamid: steamId,
+    include_played_free_games: true,
+  });
+
+/**
+ * Returns Steam player's list of owned games.
+ * @param {string} url
+ * @param {Object} query Query params
+ */
+const getPlayerProfile = (steamId) =>
+  get(`${ROOT_URL}/ISteamUser/GetPlayerSummaries/v0002`, { steamIds: steamId });
+
+/**
  * Returns Steam player payload from steamID.
+ * Also fetches list of owned games and attach it to the player object.
  * @param {string} url
  * @param {Object} query Query params
  */
 const getPlayerById = (req, res) => {
-  const query = {
-    steamIds: req.params.playerId.split(',')[0],
-  };
 
-  return get(`${ROOT_URL}/ISteamUser/GetPlayerSummaries/v0002`, query)
-    .then(response => res.send(response.players[0]))
+  return Promise.all([
+    getPlayerProfile(req.params.steamId),
+    getPlayerOwnedGames(req.params.steamId),
+  ])
+    .then(([{ players }, games]) => res.send({
+      ...players[0],
+      games: games.games ? games : null, // check for players with private game data
+    }))
     .catch(error => { console.error(error); });
 }
 
 
 module.exports = {
   getPlayerById,
-}
+  getPlayerOwnedGames,
+};
