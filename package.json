@@ -1,0 +1,22 @@
+{
+  "name": "steam-finder-api",
+  "version": "0.1.0",
+  "private": true,
+  "dependencies": {
+    "body-parser": "^1.19.0",
+    "cors": "^2.8.5",
+    "express": "^4.17.1",
+    "isomorphic-fetch": "^2.2.1",
+    "query-string": "^6.8.2"
+  },
+  "scripts": {
+    "start": "node index.js",
+    "test": "react-scripts test"
+  },
+  "eslintConfig": {
+    "extends": "react-app"
+  },
+  "devDependencies": {
+    "eslint": "^6.2.2"
+  }
+}
