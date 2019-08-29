@@ -33,6 +33,7 @@ const getPlayerOwnedGames = (steamId) =>
   get(`${ROOT_URL}/IPlayerService/GetOwnedGames/v0001`, {
     steamid: steamId,
     include_played_free_games: true,
+    include_appinfo: true,
   });
 
 /**
@@ -44,20 +45,28 @@ const getPlayerProfile = (steamId) =>
   get(`${ROOT_URL}/ISteamUser/GetPlayerSummaries/v0002`, { steamIds: steamId });
 
 /**
- * Returns Steam player payload from steamID.
- * Also fetches list of owned games and attach it to the player object.
+ * Returns Steam player's list of recently played games (2 weeks).
+ * @param {string} url
+ * @param {Object} query Query params
+ */
+const getRecentGames = (steamId) =>
+  get(`${ROOT_URL}/IPlayerService/GetRecentlyPlayedGames/v0001`, { steamid: steamId });
+
+/**
+ * Combines player profile data, owned games and recent games in one object.
  * @param {string} url
  * @param {Object} query Query params
  */
 const getPlayerById = (req, res) => {
-
   return Promise.all([
     getPlayerProfile(req.params.steamId),
     getPlayerOwnedGames(req.params.steamId),
+    getRecentGames(req.params.steamId),
   ])
-    .then(([{ players }, games]) => res.send({
+    .then(([{ players }, ownedGames, recentGames]) => res.send({
       ...players[0],
-      games: games.games ? games : null, // check for players with private game data
+      games: ownedGames.games ? ownedGames : null, // check for players with private game data
+      recentGames: recentGames.games ? recentGames : null, // check for players with private game data
     }))
     .catch(error => { console.error(error); });
 }
