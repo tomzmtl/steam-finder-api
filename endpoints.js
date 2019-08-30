@@ -20,7 +20,14 @@ const get = (url, query) => {
   });
 
   return fetch(`${url}?${queryParams}`)
-    .then(response => response.json())
+    .then(response => {
+      // Here we check if the request failed. If yes, we'll forward a custom error payload
+      // so we can react approprately.
+      if (!response.ok) {
+        return { response: { error: true } };
+      }
+      return response.json();
+    })
     .then(({ response }) => response);
 };
 
@@ -58,17 +65,26 @@ const getRecentGames = (steamId) =>
  * @param {Object} query Query params
  */
 const getPlayerById = (req, res) => {
-  return Promise.all([
+  Promise.all([
     getPlayerProfile(req.params.steamId),
     getPlayerOwnedGames(req.params.steamId),
     getRecentGames(req.params.steamId),
   ])
-    .then(([{ players }, ownedGames, recentGames]) => res.send({
+  .then((responses) => {
+    // If we get a fetch error from any call
+    if (responses.some(r => r.error )) {
+      res.status(500).send({ error: true });
+      return;
+    }
+
+    const [{ players }, ownedGames, recentGames] = responses;
+    res.send({
       ...players[0],
       games: ownedGames.games ? ownedGames : null, // check for players with private game data
       recentGames: recentGames.games ? recentGames : null, // check for players with private game data
-    }))
-    .catch(error => { console.error(error); });
+    });
+  })
+  .catch(error => { console.error(error); });
 }
 
 
